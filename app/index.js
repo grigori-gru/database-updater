@@ -1,6 +1,7 @@
 const logger = require('debug');
 const {promises} = require('fs');
 const {extname, resolve, basename} = require('path');
+const log = logger('database-updater');
 
 const getNumber = fileName => {
     const num = basename(fileName, '.sql').replace(/\D+/, '');
@@ -17,8 +18,8 @@ module.exports = class {
      * @param  {Object|undefined} fs file system
      * @param  {Object|undefined} db db manager
      */
-    constructor({config, fs = promises, db = bbDb}) {
-        this.db = db;
+    constructor({config, fs = promises, DB}) {
+        this.db = new DB();
         this.config = config;
         this.fs = fs;
     }
@@ -49,10 +50,9 @@ module.exports = class {
         try {
             const scheme = await this._getSchemeFiles(pathToScheme);
             log.debug(scheme);
-            await this.db.init(this.config);
 
             return scheme
-                ? await this.db[connectionName].query(scheme)
+                ? await this.db.query(scheme)
                 : log.warn('No .sql files are found in directory ', pathToScheme);
         } catch (err) {
             // eslint-disable-next-line
@@ -67,8 +67,9 @@ module.exports = class {
 
     /**
      * @param  {string} pathToData path to dir where scheme files are
+     * @returns {Map<string,object>} key fileName, value object with data
      */
-    async _getDataFiles(pathToData) {
+    async _getFilesData(pathToData) {
         const fileList = await this.fs.readdir(pathToData);
         log.debug(`fileList in ${pathToData} is ${fileList}`);
 
@@ -77,13 +78,12 @@ module.exports = class {
 
         const filesData = filesJSONData.reduce((acc, val, index) => {
             const fileName = fileList[index];
-            const
-        }, {});
-        // log.debug(schemeArr);
+            acc.set(fileName, JSON.parse(val));
 
-        const scheme = schemeArr.join('\n');
+            return acc;
+        }, new Map());
 
-        return scheme.length > 0 && scheme;
+        return filesData;
     }
 
     /**
@@ -91,9 +91,8 @@ module.exports = class {
      */
     async insertTestData(pathToData) {
         try {
-            const scheme = await this._getSchemeFiles(pathToData);
-
-            await this.db.init(this.config);
+            const filesData = await this._getFilesData(pathToData);
+            await Promise.all(filesData.map(([key, val]) => this.db.saveData(key, val)));
         } catch (err) {
             // eslint-disable-next-line
             console.log(err);
