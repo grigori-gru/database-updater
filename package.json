@@ -1,0 +1,37 @@
+{
+  "name": "database-updater",
+  "version": "1.0.0",
+  "description": "Set and drop DB data",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha ./test --exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grigori-gru/database-updater.git"
+  },
+  "keywords": [
+    "database",
+    "test",
+    "js",
+    "postgres",
+    "mysql"
+  ],
+  "author": "Grigori Grudinin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/grigori-gru/database-updater/issues"
+  },
+  "homepage": "https://github.com/grigori-gru/database-updater#readme",
+  "dependencies": {
+    "debug": "^4.0.1"
+  },
+  "devDependencies": {
+    "sinon": "^6.3.4",
+    "axios": "^0.18.0",
+    "chai": "^4.1.2",
+    "eslint": "latest",
+    "eslint-config-google": "^0.10.0",
+    "mocha": "^5.2.0"
+  }
+}
